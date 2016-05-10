@@ -83,7 +83,8 @@ public class Form2TxtControler {
 
 			} else {
 
-				final File newTxtFile = new File(outputDir, dirOrExcel.getName().replaceAll("[.](xls|xlsx)$", ".txt"));
+				final File newTxtFile = new File(outputDir,
+						outputDir.getName() + '_' + dirOrExcel.getName().replaceAll("[.](xls|xlsx)$", ".txt"));
 				Form2Txt.convert(dirOrExcel, newTxtFile);
 			}
 		}

@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +48,11 @@ public class Form2Txt {
 	private static final Log log = LogFactory.getLog(Form2Txt.class);
 
 	/**
+	 * 事業の状況を記載したシート名。
+	 */
+	private static String[] sheetNames = { "事業の状況", "業績等の概要", "生産、受注及び販売の状況", "対処すべき課題", "経営上の重要な契約等", "研究開発活動" };
+
+	/**
 	 * SPEEDAからダウンロードしたExcelの有価証券報告書・半期報告書・四半期報告書の「事業の状況」をテキストファイルに出力する。
 	 * 
 	 * @param book
@@ -66,8 +73,8 @@ public class Form2Txt {
 		try (Workbook workbook = WorkbookFactory.create(book)) {
 
 			// 事業の状況シートが存在するか確認する
-			final int sheetIndex = workbook.getSheetIndex("事業の状況");
-			if (sheetIndex < 0) {
+			final List<Sheet> sheetList = findSheets(workbook);
+			if (sheetList.isEmpty()) {
 
 				log.warn("<" + book.getAbsolutePath() + ">に[事業の状況]シートが存在しません。");
 				return;
@@ -76,7 +83,10 @@ public class Form2Txt {
 			// 事業の状況シートの内容をテキストファイルに出力する
 			try (PrintWriter writer = new PrintWriter(new FileWriter(text))) {
 
-				writeAll(workbook.getSheetAt(sheetIndex), writer);
+				for (Sheet sheet : sheetList) {
+
+					writeAll(sheet, writer);
+				}
 
 				log.info("<" + book.getAbsolutePath() + ">の[事業の状況]を<" + text.getAbsolutePath() + ">に出力しました。");
 			}
@@ -84,10 +94,34 @@ public class Form2Txt {
 	}
 
 	/**
-	 * [事業の状況]シートの内容を出力先に出力する。
+	 * ワークブックから事業の状況が記載されたシートを検索する。
+	 * 
+	 * @param workbook
+	 *            ワークブック。
+	 * @return シートの一覧。
+	 */
+	private static List<Sheet> findSheets(Workbook workbook) {
+
+		final List<Sheet> result = new ArrayList<>();
+
+		for (String sheetName : sheetNames) {
+
+			// 事業の状況シートが存在するか確認する
+			final int sheetIndex = workbook.getSheetIndex(sheetName);
+			if (0 <= sheetIndex) {
+
+				result.add(workbook.getSheetAt(sheetIndex));
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * シートの内容を出力先に出力する。
 	 * 
 	 * @param sheet
-	 *            [事業の状況]シート。
+	 *            シート。
 	 * @param writer
 	 *            出力先。
 	 */
@@ -102,7 +136,9 @@ public class Form2Txt {
 				// 出力すべきセルかどうか
 				if (isPrintable(cell)) {
 
-					writer.println(cell.getStringCellValue());
+					final String outputValue = formatValue(cell.getStringCellValue());
+
+					writer.println(outputValue);
 				}
 			}
 		}
@@ -137,6 +173,19 @@ public class Form2Txt {
 		}
 
 		return true;
+	}
+
+	/**
+	 * 出力する文字列を整形する。
+	 * 
+	 * @param stringCellValue
+	 *            セルの文字列。
+	 * @return 整形済み文字列。
+	 */
+	private static String formatValue(String stringCellValue) {
+
+		// nbspをスペースに変換する
+		return stringCellValue.replace('\u00A0', ' ');
 	}
 
 }
