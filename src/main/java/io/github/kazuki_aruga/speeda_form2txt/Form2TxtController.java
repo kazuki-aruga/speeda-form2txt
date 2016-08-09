@@ -29,7 +29,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
  * 
  * @author k-aruga
  */
-public class Form2TxtControler {
+public class Form2TxtController {
 
 	/**
 	 * 入力ディレクトリ以下にあるすべてのExcelファイルについて、Form2Txt処理を行って作成したファイルを、
@@ -39,6 +39,8 @@ public class Form2TxtControler {
 	 *            入力ディレクトリ。
 	 * @param outputDir
 	 *            出力ディレクトリ。
+	 * @param flat
+	 *            同一ディレクトリにすべてのファイルを出力するかどうか。
 	 * @throws IOException
 	 *             入出力例外。
 	 * @throws InvalidFormatException
@@ -46,7 +48,7 @@ public class Form2TxtControler {
 	 * @throws EncryptedDocumentException
 	 *             パスワードが掛かっている。
 	 */
-	public static void convertAll(File inputDir, File outputDir)
+	public static void convertAll(File inputDir, File outputDir, boolean flat)
 			throws EncryptedDocumentException, InvalidFormatException, IOException {
 
 		final File[] listFiles = inputDir.listFiles(new FileFilter() {
@@ -75,19 +77,49 @@ public class Form2TxtControler {
 
 			if (dirOrExcel.isDirectory()) {
 
-				final File newOutputDir = new File(outputDir, dirOrExcel.getName());
-				newOutputDir.mkdir();
+				final File newOutputDir;
+
+				if (flat) {
+
+					newOutputDir = outputDir;
+
+				} else {
+
+					newOutputDir = new File(outputDir, dirOrExcel.getName());
+					newOutputDir.mkdir();
+				}
 
 				// 再帰的に処理を適用する
-				convertAll(dirOrExcel, newOutputDir);
+				convertAll(dirOrExcel, newOutputDir, flat);
 
 			} else {
 
-				final File newTxtFile = new File(outputDir,
-						outputDir.getName() + '_' + dirOrExcel.getName().replaceAll("[.](xls|xlsx)$", ".txt"));
+				final String filename = generateFileName(inputDir, dirOrExcel, flat);
+				final File newTxtFile = new File(outputDir, filename);
 				Form2Txt.convert(dirOrExcel, newTxtFile);
 			}
 		}
+	}
+
+	/**
+	 * ファイル名を生成する。
+	 * 
+	 * @param inputDir
+	 *            入力フォルダ。
+	 * @param excel
+	 *            Excelファイル。
+	 * @param flat
+	 *            同一フォルダに出力するかどうか。
+	 * @return ファイル名。
+	 */
+	private static String generateFileName(File inputDir, File excel, boolean flat) {
+
+		if (flat) {
+
+			return inputDir.getName() + '_' + excel.getName().replaceAll("[.](xls|xlsx)$", ".txt");
+		}
+
+		return excel.getName().replaceAll("[.](xls|xlsx)$", ".txt");
 	}
 
 }

@@ -100,7 +100,7 @@ public class Main {
 		try {
 
 			// 変換処理本体を実行する
-			Form2TxtControler.convertAll(inputDir, outputDir);
+			Form2TxtController.convertAll(inputDir, outputDir, true);
 
 			log.info("すべての処理が正常に終了しました。");
 
