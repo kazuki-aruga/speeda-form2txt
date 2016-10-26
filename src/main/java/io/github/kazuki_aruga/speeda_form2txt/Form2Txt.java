@@ -184,8 +184,8 @@ public class Form2Txt {
 	 */
 	private static String formatValue(String stringCellValue) {
 
-		// nbspをスペースに変換する
-		return stringCellValue.replace('\u00A0', ' ');
+		// nbspをスペースに変換し、前後をトリムする
+		return stringCellValue.replace('\u00A0', ' ').trim();
 	}
 
 }

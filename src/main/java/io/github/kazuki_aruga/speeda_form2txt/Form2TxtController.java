@@ -75,6 +75,7 @@ public class Form2TxtController {
 
 		for (File dirOrExcel : listFiles) {
 
+			// 対象がディレクトリの場合
 			if (dirOrExcel.isDirectory()) {
 
 				final File newOutputDir;
@@ -92,8 +93,11 @@ public class Form2TxtController {
 				// 再帰的に処理を適用する
 				convertAll(dirOrExcel, newOutputDir, flat);
 
-			} else {
+			}
+			// 対象がディレクトリではない場合
+			else {
 
+				// Excelファイルの「事業の状況」をテキストファイルに出力する
 				final String filename = generateFileName(inputDir, dirOrExcel, flat);
 				final File newTxtFile = new File(outputDir, filename);
 				Form2Txt.convert(dirOrExcel, newTxtFile);
